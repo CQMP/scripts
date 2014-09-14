@@ -23,10 +23,10 @@ def njobs(name = ""):
     return ntasks
 
 # Submit mpi job
-def submit_mpi(   args,  # commands to submit
-                  account, # which account to use
+def submit_mpi(   commands,  # commands to submit
                   name, # name of the job
                   nprocs, # number of cpus
+                  account, # which account to use
                   queue = "flux", # queue name
                   prefix = "", # what will be executed before the command. Smth like "export LD_LIBRARY_PATH="..."
                   postfix = "", # what will be executed after the run
@@ -43,7 +43,7 @@ def submit_mpi(   args,  # commands to submit
                   pbs_file = "task.pbs", # name of the pbs file 
                   dry_run = False ):
     """ Submit mpi job """
-    print "Submitting",' '.join(args),"to account",account
+    print "Submitting",' '.join(commands),"to account",account
     start_dir = os.getcwd()
     scratch_dir = scratch_location+os.path.sep
     scratch_dir = scratch_dir + time.strftime("%Y-%m-%d:%H:%M:%S", time.gmtime())
@@ -80,7 +80,7 @@ def submit_mpi(   args,  # commands to submit
 
     mpi_exec = which(mpi_exec)
     call_str = [mpi_exec + " --np " + str(nprocs)+" " if add_mpirun else ""][0] 
-    call_str = call_str + ' '.join(args)
+    call_str = call_str + ' '.join(commands)
 
     f.write(call_str+os.linesep+os.linesep)
     f.write(postfix + os.linesep)
@@ -90,16 +90,16 @@ def submit_mpi(   args,  # commands to submit
     f.close()
     
     qsub = which("qsub")
-    command=qsub+" "+pbs_file
+    full_command=qsub+" "+pbs_file
 
-    print command
+    print full_command
     if not dry_run:
-        print subprocess.check_output(command, shell=True)
+        print subprocess.check_output(full_command, shell=True)
 
 # Submit serial job
-def submit_serial(args,  # commands to submit
-                  account, # which account to use
+def submit_serial(commands,  # commands to submit
                   name, # name of the job
+                  account, # which account to use
                   queue = "flux", # queue name
                   prefix = "", # what will be executed before the command. Smth like "export LD_LIBRARY_PATH="..."
                   postfix = "", # what will be executed after the run
@@ -115,10 +115,10 @@ def submit_serial(args,  # commands to submit
                   dry_run = False ):
  
     """ Submit serial job """
-    submit_mpi(args = args, 
-               account = account, 
+    submit_mpi(commands = commands, 
                name = name, 
                nprocs = 1, 
+               account = account, 
                queue = queue, 
                add_mpirun = False,
                prefix = prefix, 
