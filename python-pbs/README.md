@@ -3,7 +3,8 @@ A python module that helps with submitting jobs to different supercomputers. The
 
 See `pbs_example.py` for a usage example.
 
-- `pbs_flux.py` - flux wrapper
+- `pbs_flux.py` - umich Flux wrapper (PBS).
+- `pbs_stampede.py` - TACC Stampede wrapper (SLURM).
 
 ##### Usage 
 The best way to use it is to create a directory somewhere in home location, say `${HOME}/pythonmodules` and add the line 
