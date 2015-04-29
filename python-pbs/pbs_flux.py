@@ -71,11 +71,13 @@ def submit_mpi(   commands,  # commands to submit
     f.write("#PBS -N "+name+linesep) # job name
     f.write("#PBS -A "+account+linesep) # account
     f.write("#PBS -q "+queue+linesep) # queue
+    f.write("#PBS -m n"+linesep) # silence emails
     f.write("#PBS -l qos=flux"+linesep)
     f.write("#PBS -l procs="+str(nprocs)+",walltime="+cpu_time+linesep)
     f.write("#PBS -l pmem="+ram_size+linesep)
     f.write("#PBS -o "+os.path.join(start_dir, output_stream_file)+linesep) #output
     f.write("#PBS -e "+os.path.join(start_dir, error_stream_file)+linesep) #errors
+    f.write("#PBS -k oe" + linesep)
     f.write("#PBS -V "+linesep) # Takes your current environment (like PATH and other variables) and sends them along with your job to the compute node.
     f.write(linesep)
     f.write("cd "+start_dir+linesep)
