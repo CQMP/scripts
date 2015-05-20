@@ -1,9 +1,3 @@
-### gtau_convert
-An executable and a python module that makes a Fourier transform from g(iw) to g(tau) with adding tails
-
-#### Usage 
-Provided that gtau_convert is in the PYTHONPATH
-```
 import numpy as np
 import pygtau_convert as pygt
 
@@ -15,7 +9,3 @@ gw[1] = 0.5 / (gw[0]*1j - 0.5) + 0.5 / (gw[0]*1j + 0.5)
 
 gtau = pygt.convert(gw, 256, np.array([1,0,0])).transpose()
 np.savetxt("gtau.dat", gtau.transpose())
-```
-
-See example/example.py
-
