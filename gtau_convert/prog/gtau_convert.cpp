@@ -12,6 +12,8 @@ static std::complex<double> I(0.0, 1.0);
 
 typedef boost::tuple<double, std::vector<double>, std::vector<std::complex<double> > > input_t;
 
+double tau_f(double beta, int ntau, int i) { return beta / ntau * (i + 0.5); }
+
 //forward declarations
 // save gtau
 void print_green_itime(std::ostream &os, const itime_green_function_t &v, const double beta);
@@ -19,22 +21,11 @@ void print_green_itime(std::ostream &os, const itime_green_function_t &v, const 
 itime_green_function_t simple_gtau_convert(matsubara_green_function_t const& gw, double beta, int ntau, std::vector<double> tail)
 {
     itime_green_function_t gtau (ntau, gw.nsite(), gw.nflavor(), diagonal);
-
     if (tail.size() != 3) throw std::logic_error("tail should have 3 elements");
-
     std::cout << "tail = " << tail[0] << "/iw + " << tail[1] << "/(iw)^2 + " << (tail[2]) << "/(iw)^3" << std::endl;
-
-    std::vector<double> eps(gw.nflavor());
-    std::vector<double> epssq(gw.nflavor());
-    int D = 3;
-    for (int f=0; f<gw.nflavor(); ++f) {
-      eps[f] = 0.;
-      epssq[f] = 2*D;
-    }
     //SimpleG0FourierTransformer tr(beta, 0, 0, gw.nflavor(), eps, epssq);
     FourierTransformerFixedTail tr(beta, 1, tail);
     tr.frequency_to_time_ft(gtau, gw);
-
     return gtau;
 }
 
@@ -89,7 +80,7 @@ pyarray pyconvert (pyarray &python_data, int ntau, pyarray pytail) // wrapper fr
     pylist l1;
 
     for(unsigned int i=0;i<gtau.ntime();++i){
-        double tau = beta*i/(gtau.ntime()-1);
+        double tau = tau_f(beta, gtau.ntime(), i);
         double val = gtau(i,0,0,0);
         //l1.append(py::make_tuple(py::make_tuple(tau),py::make_tuple(val),py::make_tuple(0)));
         l1.append(py::make_tuple(tau, val, 0.0));
@@ -207,7 +198,8 @@ void print_green_itime(std::ostream &os, const itime_green_function_t &v, const 
 	  os<<v.get_header()<<std::endl;
   }
   for(unsigned int i=0;i<v.ntime();++i){
-    os<<beta*i/(v.ntime()-1)<<" ";
+    double tau = tau_f(beta, v.ntime(), i);
+    os<<tau<<" ";
     if (v.shape()==diagonal){
       for (unsigned int k=0; k<v.nsite(); ++k)
         for(unsigned int f=0;f<v.nflavor();++f)

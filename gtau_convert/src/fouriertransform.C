@@ -38,7 +38,7 @@ typedef boost::numeric::ublas::matrix<double,boost::numeric::ublas::column_major
 void FourierTransformer::frequency_to_time_ft(itime_green_function_t &G_tau,
                                               const matsubara_green_function_t &G_omega) const {
   if(G_tau.nflavor()!=G_omega.nflavor() || G_tau.nsite()!=G_omega.nsite()) throw std::logic_error("FT dimensions don't match.");
-  unsigned int N_tau = G_tau.ntime()-1;
+  unsigned int N_tau = G_tau.ntime();
   unsigned int N_omega = G_omega.nfreq();
   unsigned int N_site = G_omega.nsite();
   matsubara_green_function_t G_omega_no_model(G_omega);
@@ -64,15 +64,16 @@ void FourierTransformer::frequency_to_time_ft(itime_green_function_t &G_tau,
             G_omega_no_model(k,s1,s2,f) -= f_omega(iw, c1_[f][s1][s2],c2_[f][s1][s2], c3_[f][s1][s2]);
           }
           for (unsigned int i=0; i<N_tau; i++) {
-            G_tau(i,s1,s2,f) = f_tau(i*dt, beta_, c1_[f][s1][s2], c2_[f][s1][s2], c3_[f][s1][s2]);
+            double tau = (i+0.5)*dt;
+            G_tau(i,s1,s2,f) = f_tau(tau, beta_, c1_[f][s1][s2], c2_[f][s1][s2], c3_[f][s1][s2]);
             for (unsigned int k=0; k<N_omega; k++) {
-              double wt((2*k+1)*i*M_PI/N_tau);
+              double wt((2*k+1)*M_PI/beta_ * tau);
               G_tau(i,s1,s2,f) += 2/beta_*(cos(wt)*G_omega_no_model(k,s1,s2,f).real()+
                                            sin(wt)*G_omega_no_model(k,s1,s2,f).imag());
             }
           }
-          G_tau(N_tau,s1,s2,f)= s1==s2 ? -1. : 0.;
-          G_tau(N_tau,s1,s2,f)-=G_tau(0,s1,s2,f);
+          //G_tau(N_tau,s1,s2,f)= s1==s2 ? -1. : 0.;
+          //G_tau(N_tau,s1,s2,f)-=G_tau(0,s1,s2,f);
         }
       }
     }
