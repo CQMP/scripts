@@ -42,12 +42,12 @@ int main(int argc, char**argv){
   ("n_matsubara", po::value<int>(&n_matsubara)->default_value(-1), "number of matsubara frequencies")
   ("n_tau", po::value<int>(&n_tau)->default_value(20000), "number of imaginary time points")
   ("imag_freq_file", po::value<std::string>(&orig_filename)->default_value("G_omega_av.dat"), "input G(i omega_n) to maxent")
-  ("real_freq_file", po::value<std::string>(&spectra_filename)->default_value("spectra.dat"), "output G(omega) from maxent")
+  ("real_freq_file", po::value<std::string>(&spectra_filename)->default_value("spectra.dat"), "output A=-1/pi*ImG(omega) from maxent")
   ("output_freq_file", po::value<std::string>(&output_omega_filename)->default_value("G_omega_back.dat"), "backcontinued output G(omega) with errors")
   ("diff_freq_file", po::value<std::string>(&output_diff_filename)->default_value("G_omega_diff.dat"), "difference to input file")
   ("output_tau_file", po::value<std::string>(&output_tau_filename)->default_value("G_tau_back.dat"), "backcontinued output G(tau) with errors")
   ("kernel", po::value<std::string>(&kernel_name)->default_value("standard"), "kernel type: standard, anomalous, ...")
-  ("multiply_m1divpi", "if not specified: scales results by -pi, as required if converting A to G. If specified: standard Kramers Kronig (required for Sigma/Anomalous/etc backcont)")
+  ("multiply_m1divpi", "if not specified: scales results by -pi, as required if converting ImG to A. If specified: standard Kramers Kronig (required for Sigma/Anomalous/etc backcont)")
   ;
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
