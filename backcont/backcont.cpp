@@ -105,6 +105,7 @@ int main(int argc, char**argv){
   if(k_type==standard){
     std::vector<double > imag_time_back(n_tau,0.);
     std::ofstream gtau_file(output_tau_filename.c_str());
+    gtau_file.precision(14);
     for(int i=0;i<n_tau;++i){
       double tau=i/(double)n_tau*beta;
       imag_time_back[i]=0.;
@@ -129,6 +130,7 @@ int main(int argc, char**argv){
   
   std::vector<std::complex<double> > imag_freq_data_back(n_matsubara);
   std::ofstream gomega_file(output_omega_filename.c_str());
+  gomega_file.precision(14);
   for(int n=0;n<n_matsubara;++n){
     double omega_n=(2.*n+1)*M_PI/beta;
     imag_freq_data_back[n]=0.;
