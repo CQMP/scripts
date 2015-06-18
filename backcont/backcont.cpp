@@ -113,17 +113,18 @@ int main(int argc, char**argv){
         double freq =real_freq_freq[w];
         double value=real_freq_data[w];
         double delta=(real_freq_freq[w+1]-real_freq_freq[w-1])/2.;
-        double kernel=std::exp(-freq*tau)/(std::exp(-freq*beta)+1);
+        double kernel=-std::exp(-freq*tau)/(std::exp(-freq*beta)+1);
         if(!std::isnan(kernel))
           imag_time_back[i]+=kernel*value*delta;
         //std::cout<<freq<<" "<<value<<" "<<delta<<" "<<std::exp(-freq*tau)/(std::exp(-freq*beta)+1)*value*delta<<" "<<imag_time_back[i]<<std::endl;
       }
-      double kernel1=std::exp(-real_freq_freq[0]*tau    )/(std::exp(-real_freq_freq[0]    *beta)+1);
-      double kernel2=std::exp(-real_freq_freq.back()*tau)/(std::exp(-real_freq_freq.back()*beta)+1);
+      double kernel1=-std::exp(-real_freq_freq[0]*tau    )/(std::exp(-real_freq_freq[0]    *beta)+1);
+      double kernel2=-std::exp(-real_freq_freq.back()*tau)/(std::exp(-real_freq_freq.back()*beta)+1);
       if(!std::isnan(kernel1))
         imag_time_back[i]+=kernel1*real_freq_data[0]*(real_freq_freq[1]-real_freq_freq[0])/2.;
       if(!std::isnan(kernel2))
         imag_time_back[i]+=kernel2*real_freq_data.back()*(real_freq_freq.back()-real_freq_freq[real_freq_freq.size()-2])/2.;
+      if(multiply_m1divpi) imag_time_back[i]*=-1./M_PI;
       gtau_file<<tau<<" "<<imag_time_back[i]<<std::endl;
     }
   }
