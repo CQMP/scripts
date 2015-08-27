@@ -1,3 +1,5 @@
+# A converter script between DMFT output and opendf input
+
 import numpy as np
 from itertools import izip
 import os
@@ -12,24 +14,8 @@ try:
 except:
     use_pandas = False
 
-def save_grid_object(data,grids,name,h5group):
-    print "--> saving", name
-    out = h5group.create_group(name)
-    data_is_complex = (data.dtype == np.complex)
-    data = data.astype(np.complex).view(np.float).reshape(np.append(data.shape,[2])) if data_is_complex else data 
-    data_d = out.create_dataset("data", data = data)
-    grids_d = out.create_group("grids")
-    data_d.attrs["__complex__"] = int(data_is_complex)
-    for (i,grid) in izip(range(len(grids)),grids):
-        #print i, grid.shape
-        grid_is_complex = grids[i].dtype == np.complex
-        grid_g = grids_d.create_group(str(i))
-        grid_data = grids[i] if not grid_is_complex else grids[i].astype(np.complex).view(np.float).reshape([len(grids[i]),2])
-        grid_dataset = grid_g.create_dataset("values",data=grid_data)
-        grid_dataset.attrs["__complex__"] = int(grid_is_complex)
-
 def main(params):
-    # 1. read input data from txt
+    # read input data from txt
     print "Parsing data with the following parameters\n","\n".join([str(key)+" : "+str(value) for key,value in params.items()])
     (gw_im_grids, gw_im_data) = read_txt(params["gw_imag"])
     (gw_re_grids, gw_re_data) = read_txt(params["gw_real"]) if os.path.exists(params["gw_real"]) else (gw_im_grids,gw_im_data*0)
@@ -47,10 +33,9 @@ def main(params):
     beta = 2*PI/(fgrid_in[1] - fgrid_in[0]) 
     print "beta =", beta
 
-    # 2. process the data - combine real and imaginary parts
-    iw = fgrid_in*1j
+    # process the data - combine real and imaginary parts
     mu = params["mu"]
-    # compine two gf into one
+    iw = fgrid_in*1j
     gw_data = gw_re_data + 1j*gw_im_data
 
     sigma_data = np.zeros(gw_data.shape, dtype=np.complex)
@@ -61,7 +46,7 @@ def main(params):
         vertex_data[x] = vertex_data_in[2*x] + vertex_data_in[2*x+1]*1j
         delta_data[x] = iw + mu - sigma_data[x] - 1./gw_data[x]
 
-    # Postprocess data
+    # Postprocess data 
     F00 = -vertex_data[0]  # minus sign comes from difference between DGA and DF notations
     F01 = -vertex_data[1]
     bvertex_index_grid_in, fvertex_index_grid_in, _ = vertex_grids 
@@ -74,10 +59,9 @@ def main(params):
     bgrid = b_index_grid * 2 * PI / beta * 1j
     fgrid = (f_index_grid * 2 + 1) * PI / beta * 1j
 
-    # Extract vertex
+    # Extract vertices for required number of fermionic/bosonic freqs
     fvertex_inds = np.array([np.searchsorted(fvertex_index_grid_in, x) for x in f_index_grid])
     bvertex_inds = np.array([np.searchsorted(bvertex_index_grid_in, x) for x in b_index_grid])
-
     vertex_ind_mesh = np.ix_(bvertex_inds, fvertex_inds, fvertex_inds)
     F00_filtered = F00[vertex_ind_mesh]
     F01_filtered = F01[vertex_ind_mesh]
@@ -93,7 +77,7 @@ def main(params):
             obj[s, wfmax : 2*wfmax] = obj_orig[s][0:wfmax]
             obj[s, 0:wfmax] = np.conjugate(obj_orig[s][0:wfmax][::-1])
     
-    # output
+    # output to hdf5
     data = h5py.File("qmc_output.h5", "w")
     top = data.create_group("dmft")
     save_grid_object(F00_filtered, vertex_grids_out , "F00", top)
@@ -113,6 +97,7 @@ def isfloat(value):
     return False
 
 def convert_multidimensional(data):
+    ''' convert the flat grid+data structure into (grids,data) tuple. '''
     ncols = data.shape[0]
     nrows = data.shape[1]
 
@@ -140,6 +125,7 @@ def convert_multidimensional(data):
 
 
 def read_txt(fname):
+    ''' read data from txt file. '''
     if not os.path.exists(fname):
         print "No such file:", fname + ".","Exiting."
         exit(1)
@@ -161,51 +147,23 @@ def read_txt(fname):
 
     return convert_multidimensional(all_data)
 
-'''std::array<gw_type,2> read_gw(std::string fname, bool complex_data, bool skip_first_line)
-{
-    std::cout << "Parsing " << fname << std::endl;
-    std::ifstream in;
-    in.open(fname.c_str());
-    if (in.fail()) { ERROR("Couldn't open file " << fname); throw std::logic_error("Couldn't open file " + fname); };
-    if (skip_first_line) { std::string comment; std::getline(in, comment); std::cout << "Skipping " << comment << std::endl; } 
+def save_grid_object(data,grids,name,h5group):
+    ''' dump (grids,data) structure to a gftools/ALPSCore compatible input '''
+    print "--> saving", name
+    out = h5group.create_group(name)
+    data_is_complex = (data.dtype == np.complex)
+    data = data.astype(np.complex).view(np.float).reshape(np.append(data.shape,[2])) if data_is_complex else data 
+    data_d = out.create_dataset("data", data = data)
+    grids_d = out.create_group("grids")
+    data_d.attrs["__complex__"] = int(data_is_complex)
+    for (i,grid) in izip(range(len(grids)),grids):
+        #print i, grid.shape
+        grid_is_complex = grids[i].dtype == np.complex
+        grid_g = grids_d.create_group(str(i))
+        grid_data = grids[i] if not grid_is_complex else grids[i].astype(np.complex).view(np.float).reshape([len(grids[i]),2])
+        grid_dataset = grid_g.create_dataset("values",data=grid_data)
+        grid_dataset.attrs["__complex__"] = int(grid_is_complex)
 
-    typedef typename gw_type::value_type value_type;
-    typedef typename gw_type::arg_tuple arg_tuple;
-
-    std::vector<arg_tuple> grid_vals;
-    std::vector<value_type> vals_up, vals_dn;
-
-    while (!in.eof()) {  
-        double v, v2=0; 
-        in >> v; 
-        if (in.eof()) break;
-        grid_vals.push_back(std::make_tuple(I*v));
-
-        in >> v; 
-        v2 = v; v=0;
-        if (complex_data) { 
-            in >> v;
-            vals_up.push_back(v2 + v*I);
-            }
-        else vals_up.push_back(v2*I);
-
-        in >> v; 
-        v2 = v; v=0;
-        if (complex_data) { 
-            in >> v;
-            vals_dn.push_back(v2 + v*I);
-            }
-        else vals_dn.push_back(v2*I);
-        }
-
-    typedef typename gw_type::grid_tuple grid_tuple;
-    grid_tuple grids = extra::arg_vector_to_grid_tuple<grid_tuple>(grid_vals);
-    gw_type out_up(grids), out_dn(grids);
-    std::copy(vals_up.begin(), vals_up.end(), out_up.data().data()); 
-    std::copy(vals_dn.begin(), vals_dn.end(), out_dn.data().data()); 
-    return {{ std::move(out_up), std::move(out_dn) }};
-}
-'''
 
 
 if __name__ == "__main__":
