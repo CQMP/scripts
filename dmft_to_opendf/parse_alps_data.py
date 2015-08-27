@@ -12,6 +12,8 @@ try:
     import pandas
     use_pandas = True
 except:
+    print "No pandas found, results in slow loading"
+    print "do 'pip install pandas'"
     use_pandas = False
 
 def main(params):
