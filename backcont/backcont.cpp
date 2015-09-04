@@ -7,16 +7,24 @@
 enum kernel_type{
   standard,
   anomalous,
-  bosonic
+  bosonic,
+  me_bosonic,
+  me_anomalous
 };
 
 inline std::complex<double> fermionic_standard_kernel(const double &omega_n, const double omega){
   return 1./(std::complex<double>(0., omega_n)-omega);
 }
 inline std::complex<double> anomalous_kernel(const double &omega_n, const double omega){
-  return -omega / (std::complex<double>(0., omega_n) - omega);
+  return -1.0 / (std::complex<double>(0., omega_n) - omega);
 }
 inline std::complex<double> bosonic_kernel(const double &omega_n, const double omega){
+  return 1.0 / (std::complex<double>(0., omega_n) - omega);
+}
+inline std::complex<double> me_anomalous_kernel(const double &omega_n, const double omega){
+  return omega / (std::complex<double>(0., omega_n) - omega);
+}
+inline std::complex<double> me_bosonic_kernel(const double &omega_n, const double omega){
   return omega / (std::complex<double>(0., omega_n) - omega);
 }
 
@@ -24,6 +32,8 @@ inline std::complex<double> kernel(const double &omega_n, const double omega, co
   if(k_type==standard) return fermionic_standard_kernel(omega_n, omega);
   else if(k_type==anomalous) return anomalous_kernel(omega_n, omega);
   else if(k_type==bosonic) return bosonic_kernel(omega_n, omega);
+  else if(k_type==me_bosonic) return me_bosonic_kernel(omega_n, omega);
+  else if(k_type==me_anomalous) return me_anomalous_kernel(omega_n, omega);
   else throw std::logic_error("kernel not implemented.");
 }
 
@@ -82,6 +92,12 @@ int main(int argc, char**argv){
     }else if(kernel_name==std::string("bosonic")){
       k_type=bosonic;
       std::cout<<"using bosonic kernel."<<std::endl;
+    }else if(kernel_name==std::string("me_bosonic")){
+      k_type=me_bosonic;
+      std::cout<<"using maxent's bosonic kernel."<<std::endl;
+    }else if(kernel_name==std::string("me_anomalous")){
+      k_type=me_anomalous;
+      std::cout<<"using maxent's anomalous kernel."<<std::endl;
     }else{
       throw std::runtime_error("kernel type not recognized.");
     }
