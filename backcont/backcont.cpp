@@ -6,7 +6,8 @@
 
 enum kernel_type{
   standard,
-  anomalous
+  anomalous,
+  bosonic
 };
 
 inline std::complex<double> fermionic_standard_kernel(const double &omega_n, const double omega){
@@ -15,10 +16,14 @@ inline std::complex<double> fermionic_standard_kernel(const double &omega_n, con
 inline std::complex<double> anomalous_kernel(const double &omega_n, const double omega){
   return -omega / (std::complex<double>(0., omega_n) - omega);
 }
+inline std::complex<double> bosonic_kernel(const double &omega_n, const double omega){
+  return omega / (std::complex<double>(0., omega_n) - omega);
+}
 
 inline std::complex<double> kernel(const double &omega_n, const double omega, const kernel_type k_type){
   if(k_type==standard) return fermionic_standard_kernel(omega_n, omega);
   else if(k_type==anomalous) return anomalous_kernel(omega_n, omega);
+  else if(k_type==bosonic) return bosonic_kernel(omega_n, omega);
   else throw std::logic_error("kernel not implemented.");
 }
 
@@ -74,6 +79,9 @@ int main(int argc, char**argv){
     }else if(kernel_name==std::string("anomalous")){
       k_type=anomalous;
       std::cout<<"using anomalous kernel."<<std::endl;
+    }else if(kernel_name==std::string("bosonic")){
+      k_type=bosonic;
+      std::cout<<"using bosonic kernel."<<std::endl;
     }else{
       throw std::runtime_error("kernel type not recognized.");
     }
@@ -133,17 +141,19 @@ int main(int argc, char**argv){
   std::ofstream gomega_file(output_omega_filename.c_str());
   gomega_file.precision(14);
   for(int n=0;n<n_matsubara;++n){
-    double omega_n=(2.*n+1)*M_PI/beta;
+    double omega_n;
+    if(k_type==standard) omega_n=(2.*n+1)*M_PI/beta;
+    else omega_n=(2.*n)*M_PI/beta;
     imag_freq_data_back[n]=0.;
     for(int w=1;w<real_freq_freq.size()-1;++w){
       double freq =real_freq_freq[w];
       double value=real_freq_data[w];
       double delta=(real_freq_freq[w+1]-real_freq_freq[w-1])/2.;
-      std::complex<double> kernel=fermionic_standard_kernel(omega_n, freq);
-      imag_freq_data_back[n]+=kernel*value*delta;
+      std::complex<double> kernel_val=kernel(omega_n, freq,k_type);
+      imag_freq_data_back[n]+=kernel_val*value*delta;
     }
-    std::complex<double> kernel1=fermionic_standard_kernel(omega_n, real_freq_freq[0]); 
-    std::complex<double> kernel2=fermionic_standard_kernel(omega_n, real_freq_freq.back());
+    std::complex<double> kernel1=kernel(omega_n, real_freq_freq[0],k_type); 
+    std::complex<double> kernel2=kernel(omega_n, real_freq_freq.back(),k_type);
     imag_freq_data_back[n]+=kernel1*real_freq_data[0]*(real_freq_freq[1]-real_freq_freq[0])/2.;
     imag_freq_data_back[n]+=kernel2*real_freq_data.back()*(real_freq_freq.back()-real_freq_freq[real_freq_freq.size()-2])/2.;
     if(multiply_m1divpi) imag_freq_data_back[n]*=-1./M_PI;
