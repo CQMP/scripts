@@ -122,7 +122,7 @@ int main(int argc, char**argv){
   
   std::cout<<"read in files: "<<imag_freq_data.size()<<" matsubara freqs and "<<real_freq_data.size()<<" real frequency points."<<std::endl;
   if(n_matsubara ==-1) n_matsubara=imag_freq_data.size();
-  if(real_freq_data[0]+real_freq_data.back() > 1.e-4) std::cerr<<"problem with spectra: does not go to zero at boundary?";
+  if(real_freq_data[0]+real_freq_data.back() > 1.e-4) std::cerr<<"problem with spectra: does not go to zero at boundary?\n";
   std::cout<<real_freq_data[0]<<" "<<real_freq_data.back()<<std::endl;
   
   //back-continue to the imaginary axis
