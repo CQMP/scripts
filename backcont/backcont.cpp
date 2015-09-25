@@ -19,13 +19,13 @@ inline std::complex<double> anomalous_kernel(const double &omega_n, const double
   return -1.0 / (std::complex<double>(0., omega_n) - omega);
 }
 inline std::complex<double> bosonic_kernel(const double &omega_n, const double omega){
-  return 1.0 / (std::complex<double>(0., omega_n) - omega);
+  return 1.0 / (std::complex<double>(0., omega_n) + omega);
 }
 inline std::complex<double> me_anomalous_kernel(const double &omega_n, const double omega){
   return -omega / (std::complex<double>(0., omega_n) - omega);
 }
 inline std::complex<double> me_bosonic_kernel(const double &omega_n, const double omega){
-  return omega / (std::complex<double>(0., omega_n) - omega);
+  return omega / (std::complex<double>(0., omega_n) + omega);
 }
 
 inline std::complex<double> kernel(const double &omega_n, const double omega, const kernel_type k_type){
