@@ -156,7 +156,13 @@ int main(int argc, char**argv){
   std::vector<std::complex<double> > imag_freq_data_back(n_matsubara);
   std::ofstream gomega_file(output_omega_filename.c_str());
   gomega_file.precision(14);
-  for(int n=0;n<n_matsubara;++n){
+  int n=0;
+  //don't compute bosonic singular value @ n=0
+  if(k_type==bosonic || k_type==anomalous){
+    n++;
+    std::cout<< "Warning: kernel is singular at iomega_n=0. Skipping..." <<std::endl;
+  }
+  for(;n<n_matsubara;++n){
     double omega_n;
     if(k_type==standard) omega_n=(2.*n+1)*M_PI/beta;
     else omega_n=(2.*n)*M_PI/beta;
