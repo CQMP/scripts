@@ -19,7 +19,7 @@ def which(file):
 def njobs(name = ""):
     """ Wrapper around qstat - gets the total number of tasks with a given name or account """ 
     user = os.environ.get('USER')
-    ntasks = int(subprocess.check_output("qstat | grep "+user+" | grep '"+name+"' | wc -l", shell=True))
+    ntasks = int(subprocess.check_output("qstat | grep "+user+" | grep '"+name+"' | grep ' R ' | wc -l", shell=True))
     return ntasks
 
 # Submit mpi job
@@ -27,7 +27,7 @@ def submit_mpi(   commands,  # commands to submit
                   name, # name of the job
                   nprocs, # number of cpus
                   account, # which account to use
-                  queue = "flux", # queue name
+                  queue, # queue name
                   prefix = "", # what will be executed before the command. Smth like "export LD_LIBRARY_PATH="..."
                   postfix = "", # what will be executed after the run
                   add_mpirun = False, # add mpirun in front
@@ -35,13 +35,14 @@ def submit_mpi(   commands,  # commands to submit
                   mpi_exec = "mpirun", # which mpirun command
                   use_scratch = False, # work in scratch
                   scratch_dir = os.environ.get("SCRATCH"), # location of scratch fs 
-                  job_input = "*.ini *.dat *.h5", # what to copy to scratch as input
+                  job_input = "*.ini *.dat *.h5 *.sh", # what to copy to scratch as input
                   output_stream_file = "stdout", # where to gather output 
                   error_stream_file = "stderr", # where to gather errors
                   cpu_time = "164:00:00", # how long to run
                   ram_size = "4096mb", # memory allocation
                   file_size="4096mb",
                   pbs_file = "task.pbs", # name of the pbs file 
+                  priority = 0,
                   dry_run = False ):
     linesep = '\n' # see https://docs.python.org/2/library/os.html?highlight=linesep#os.linesep
     scratch_dir = os.getcwd() if scratch_dir==None else scratch_dir
@@ -75,9 +76,10 @@ def submit_mpi(   commands,  # commands to submit
     f.write("#PBS -l qos=flux"+linesep)
     f.write("#PBS -l procs="+str(nprocs)+",walltime="+cpu_time+linesep)
     f.write("#PBS -l pmem="+ram_size+linesep)
+    f.write("#PBS -p "+str(priority)+linesep)
     f.write("#PBS -o "+os.path.join(start_dir, output_stream_file)+linesep) #output
     f.write("#PBS -e "+os.path.join(start_dir, error_stream_file)+linesep) #errors
-    f.write("#PBS -k oe" + linesep)
+    #f.write("#PBS -k oe" + linesep)
     f.write("#PBS -V "+linesep) # Takes your current environment (like PATH and other variables) and sends them along with your job to the compute node.
     f.write(linesep)
     f.write("cd "+start_dir+linesep)
@@ -118,7 +120,7 @@ def submit_mpi(   commands,  # commands to submit
 def submit_serial(commands,  # commands to submit
                   name, # name of the job
                   account, # which account to use
-                  queue = "flux", # queue name
+                  queue, # queue name
                   prefix = "", # what will be executed before the command. Smth like "export LD_LIBRARY_PATH="..."
                   postfix = "", # what will be executed after the run
                   use_scratch = False, # work in scratch
@@ -149,6 +151,7 @@ def submit_serial(commands,  # commands to submit
                use_scratch = use_scratch, 
                scratch_dir = scratch_dir,
                pbs_file = pbs_file,
+               priority = 0,
                dry_run = dry_run)
 
 
