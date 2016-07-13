@@ -1,7 +1,7 @@
 h5parse
 ======
-python script for dumping hdf5 files to text
-includes bash completion script for datasets within hdf5 file
+python script for dumping hdf5 files to text.
+includes bash completion script for datasets within hdf5 file.
 completion requires bash version > 4.0
 
 ### Usage
