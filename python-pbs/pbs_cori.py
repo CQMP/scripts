@@ -37,7 +37,7 @@ def submit_mpi(   commands,  # commands to submit
                   job_input = "*.ini *.dat *.h5", # what to copy to scratch as input
                   output_stream_file = "stdout", # where to gather output 
                   error_stream_file = "stderr", # where to gather errors
-                  cpu_time = "164:00:00", # how long to run
+                  cpu_time = "4:00:00", # how long to run
                   ram_size = "4096mb", # memory allocation
                   file_size="4096mb",
                   pbs_file = "task.pbs", # name of the pbs file 
@@ -71,7 +71,7 @@ def submit_mpi(   commands,  # commands to submit
     #f.write("#SBATCH -A "+account+linesep) # account
     f.write("#SBATCH -p "+queue+linesep) # queue
     #f.write("#SBATCH -n "+str(nprocs) + linesep)
-    nnodes = max(nprocs/32, 1)
+    nnodes = max(int(round(nprocs/32.,0)), 1)
     f.write("#SBATCH -N "+str(nnodes) + linesep)
     f.write("#SBATCH -t "+cpu_time+linesep)
     f.write("#SBATCH --mail-type=fail"+linesep)
