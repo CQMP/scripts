@@ -103,6 +103,7 @@ def convert_multidimensional(data):
     ''' convert the flat grid+data structure into (grids,data) tuple. '''
     ncols = data.shape[0]
     nrows = data.shape[1]
+    print data.shape
 
     shape_out=np.array([])
     #grids=np.array([[]])
@@ -134,14 +135,16 @@ def read_txt(fname):
         exit(1)
 
     print "--> Loading", fname
-    firstline=open(fname,'rb').readline()
+    f = open(fname,'rb')
+    firstline=f.readline()
+    f.close()
     has_header = not np.all([isfloat(x) for x in open(fname,'rb').readline().split()])
     print "file has",("a" if has_header else "no"), "header;",
     
     all_data = None
     if use_pandas: 
         # Fast pandas read
-        data1 = pandas.read_table(fname, parse_dates = False, header = 0 if has_header else None, delim_whitespace = True) #dayfirst = False, keep_date_col = True)
+        data1 = pandas.read_table(fname, parse_dates = False, header=None, comment = "#", delim_whitespace = True) #dayfirst = False, keep_date_col = True)
         all_data = data1.values.transpose() 
     else:
         # Slow genfromtxt from numpy
