@@ -1,6 +1,10 @@
 # A converter script between DMFT output and opendf input
+import sys
+sys.path.append('/home/jpfleblanc/.local/lib/python2.7/site-packages')
+
 
 import numpy as np
+print np.version.version
 from itertools import izip
 import os
 from numpy import pi as PI
@@ -124,6 +128,7 @@ def convert_multidimensional(data):
     complex_data = False # (ncols - dims)==2
     print str(dims)+"d data,",shape_out, "dimensions,", ("complex" if complex_data else "real"), "data" 
     data_out = np.vstack([data[dims+x] for x in range(data_dims)])
+    shape_out=map(int,shape_out)	
     array_out = np.reshape(data_out,shape_out)
     return (grids,array_out) 
 
