@@ -4,8 +4,8 @@ sys.path.append('/home/jpfleblanc/.local/lib/python2.7/site-packages')
 
 
 import numpy as np
-print np.version.version
-from itertools import izip
+print( np.version.version)
+#from itertools import izip
 import os
 from numpy import pi as PI
 import h5py
@@ -16,27 +16,27 @@ try:
     import pandas
     use_pandas = True
 except:
-    print "No pandas found, results in slow loading"
-    print "do 'pip install pandas'"
+    print("No pandas found, results in slow loading")
+    print( "do 'pip install pandas'")
     use_pandas = False
 
 def main(params):
     # read input data from txt
-    print "Parsing data with the following parameters\n","\n".join([str(key)+" : "+str(value) for key,value in params.items()])
+    print("Parsing data with the following parameters\n","\n".join([str(key)+" : "+str(value) for key,value in params.items()]))
     (gw_grids, gw_data_in) = read_txt(params["gw"])
     (sigma_grids, sigma_data_in)   = read_txt(params["sigma"])
     (vertex_grids, vertex_data_in) = read_txt(params["vertex"])
 
     nflavors = gw_data_in.shape[0]/2
-    print "There are", nflavors, "flavors"
+    print("There are", nflavors, "flavors")
     if ((sigma_data_in.shape[0]) / 2 != nflavors):
-        print "Flavor mismatch between sigma and g :", nflavors, "!=", (sigma_data_in.shape[0]) / 2
+        print("Flavor mismatch between sigma and g :", nflavors, "!=", (sigma_data_in.shape[0]) / 2)
     if (not np.all(gw_grids[0] == sigma_grids[0])):
-        print "Grid mismatch between sigma and g"
+        print("Grid mismatch between sigma and g")
 
     fgrid_in = gw_grids[0]
     beta = 2*PI/(fgrid_in[1] - fgrid_in[0]) 
-    print "beta =", beta
+    print("beta =", beta)
 
     # process the data - combine real and imaginary parts
     mu = params["mu"]
@@ -80,7 +80,7 @@ def main(params):
     delta = sigma*0
     gw = sigma*0
     for s in range(nflavors):
-        for (obj,obj_orig) in izip((delta, sigma, gw),(delta_data,sigma_data,gw_data)):
+        for (obj,obj_orig) in zip((delta, sigma, gw),(delta_data,sigma_data,gw_data)):
             obj[s, wfmax : 2*wfmax] = obj_orig[s][0:wfmax]
             obj[s, 0:wfmax] = np.conjugate(obj_orig[s][0:wfmax][::-1])
     
@@ -107,7 +107,7 @@ def convert_multidimensional(data):
     ''' convert the flat grid+data structure into (grids,data) tuple. '''
     ncols = data.shape[0]
     nrows = data.shape[1]
-    print data.shape
+    print(data.shape)
 
     shape_out=np.array([])
     #grids=np.array([[]])
@@ -126,7 +126,7 @@ def convert_multidimensional(data):
     data_dims = ncols - dims
     shape_out = np.insert(shape_out,0,data_dims) if data_dims > 1 else None
     complex_data = False # (ncols - dims)==2
-    print str(dims)+"d data,",shape_out, "dimensions,", ("complex" if complex_data else "real"), "data" 
+    print(str(dims)+"d data,",shape_out, "dimensions,", ("complex" if complex_data else "real"), "data" )
     data_out = np.vstack([data[dims+x] for x in range(data_dims)])
     shape_out=map(int,shape_out)	
     array_out = np.reshape(data_out,shape_out)
@@ -136,15 +136,15 @@ def convert_multidimensional(data):
 def read_txt(fname):
     ''' read data from txt file. '''
     if not os.path.exists(fname):
-        print "No such file:", fname + ".","Exiting."
+        print("No such file:", fname + ".","Exiting.")
         exit(1)
 
-    print "--> Loading", fname
+    print("--> Loading", fname)
     f = open(fname,'rb')
     firstline=f.readline()
     f.close()
     has_header = not np.all([isfloat(x) for x in open(fname,'rb').readline().split()])
-    print "file has",("a" if has_header else "no"), "header;",
+    print("file has",("a" if has_header else "no"), "header;",)
     
     all_data = None
     if use_pandas: 
@@ -154,20 +154,20 @@ def read_txt(fname):
     else:
         # Slow genfromtxt from numpy
         all_data = np.genfromtxt(fname, dtype = np.float, skip_header = int(has_header), autostrip=True, unpack = True)
-    print "shape :", all_data.shape
+    print("shape :", all_data.shape)
 
     return convert_multidimensional(all_data)
 
 def save_grid_object(data,grids,name,h5group):
     ''' dump (grids,data) structure to a gftools/ALPSCore compatible input '''
-    print "--> saving", name
+    print("--> saving", name)
     out = h5group.create_group(name)
     data_is_complex = (data.dtype == np.complex)
     data = data.astype(np.complex).view(np.float).reshape(np.append(data.shape,[2])) if data_is_complex else data 
     data_d = out.create_dataset("data", data = data)
     grids_d = out.create_group("grids")
     data_d.attrs["__complex__"] = int(data_is_complex)
-    for (i,grid) in izip(range(len(grids)),grids):
+    for (i,grid) in zip(range(len(grids)),grids):
         #print i, grid.shape
         grid_is_complex = grids[i].dtype == np.complex
         grid_g = grids_d.create_group(str(i))
