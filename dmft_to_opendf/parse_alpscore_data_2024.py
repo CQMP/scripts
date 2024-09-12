@@ -87,6 +87,7 @@ def main(params):
     
     # output to hdf5
     data = h5py.File("qmc_output.h5", "w")
+    
     top = data.create_group("dmft")
     save_grid_object(F00_filtered, vertex_grids_out , "F00", top)
     save_grid_object(F01_filtered, vertex_grids_out , "F01", top)
